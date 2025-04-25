@@ -1,3 +1,6 @@
+#ifndef MODEL_H
+#define MODEL_H
+
 #include <time.h>
 
 // 卡信息
@@ -15,7 +18,6 @@ typedef struct CardData {
 
 } CardData;
 
-
 // 计费信息
 typedef struct ChargeData {
     char aName[19];     // 卡号，不能为空
@@ -25,7 +27,6 @@ typedef struct ChargeData {
     int nStatus;        // 计费状态，0表示未结算，1表示已结算
     int nDel;       // 删除标志，0表示未删除，1表示已删除
 } ChargeData;
-
 
 // 计费标准信息
 typedef struct ChargeStandard {
@@ -37,7 +38,6 @@ typedef struct ChargeStandard {
     int nDel;       // 删除标志，0表示未删除，1表示已删除
 } ChargeStandard;
 
-
 // 充值/退费信息
 typedef struct RechargeData {
     char aName[19];     // 卡号，不能为空
@@ -47,7 +47,6 @@ typedef struct RechargeData {
     int nDel;       // 删除标志，0表示未删除，1表示已删除
 } RechargeData;
 
-
 // 管理员信息
 typedef struct AdminData {
     char aName[19];     // 管理员账号，不能为空
@@ -56,4 +55,4 @@ typedef struct AdminData {
     int nDel;       // 删除标志，0表示未删除，1表示已删除
 } AdminData;
 
-
+#endif // MODEL_H

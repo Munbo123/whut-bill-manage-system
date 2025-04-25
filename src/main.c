@@ -1,12 +1,33 @@
 #include <stdio.h>
+#include <string.h>
 #include "models/model.h"
+#include "models/cardDataLinkList.h"
 
-#define MAX_CARD_NUM 100 // 假设最多100张卡
+// 移除原来的数组定义
+// 定义全局链表变量
+CardList* cardList = NULL;
 
-CardData cardData[MAX_CARD_NUM]; 
+int printMenu();
+int addCard();
+int queryCard();
 
 int main() {
     printf("欢迎进入计费管理系统!\n");
+    
+    // 正确初始化链表
+    cardList = initCardList();
+    if (cardList == NULL) {
+        printf("初始化链表失败，系统退出！\n");
+        return -1;
+    }
+    
+    // 尝试从文件加载卡数据
+    CardList* loadedList = loadCardListFromFile("cards.dat");
+    if (loadedList != NULL) {
+        freeCardList(cardList); // 释放原链表
+        cardList = loadedList;  // 使用加载的链表
+        printf("已从文件加载卡数据！\n");
+    }
 
     int instruct;
     while (1) {
@@ -40,18 +61,18 @@ int main() {
                 break;
             case 0:
                 printf("退出系统\n");
+                // 保存卡数据到文件
+                saveCardListToFile(cardList, "cards.dat");
+                // 释放链表内存
+                freeCardList(cardList);
                 return 0;
             default:
                 printf("无效的输入，请重新选择！\n");
         }
     }
 
-
-
-
     return 0;
 }
-
 
 int printMenu() {
     printf("\n********** 菜单 **********\n");
@@ -65,14 +86,12 @@ int printMenu() {
     printf("8. 注销卡\n");
     printf("0. 退出\n");
 
-
     int instruct;
     printf("请选择菜单编号0~8：");
     scanf("%d", &instruct);
 
     return instruct;
 }
-
 
 int addCard() {
     printf("----------添加卡-----------\n");
@@ -91,23 +110,22 @@ int addCard() {
     card.nUseCount = 0; // 上机次数
     card.nDel = 0; // 未删除
 
-    // 将卡信息添加到数组中
-    for (int i = 0; i < MAX_CARD_NUM; i++) {
-        if (cardData[i].nDel != 1) { // 找到一个已删除的位置
-            cardData[i] = card;
-            printf("--------添加的卡信息如下-------\n");
-            printf("卡号\t密码\t状态\t开卡金额\n");
-            printf("%s\t%s\t%d\t%.2f\n", cardData[i].aName, cardData[i].aPassword, cardData[i].nStatus, cardData[i].fBalance);
-            return 0;
+    // 将卡信息添加到链表中
+    int result = addCardToList(cardList, card);
+    if (result == 1) { // 成功返回1
+        printf("--------添加的卡信息如下-------\n");
+        printf("卡号\t密码\t状态\t开卡金额\n");
+        printf("%s\t%s\t%d\t%.2f\n", card.aName, card.aPassword, card.nStatus, card.fBalance);
+        return 0;
+    } else {
+        if (result == -2) {
+            printf("卡号已存在！\n");
+        } else {
+            printf("添加卡失败！\n");
         }
-        if (i == 99) {
-            printf("卡片已满，无法添加！\n");
-            return -1;
-        }
+        return -1;
     }
-
 }
-
 
 int queryCard() {
     printf("----------查询卡-----------\n");
@@ -115,23 +133,16 @@ int queryCard() {
     printf("请输入查询的卡号：");
     scanf("%s", cardNum);
 
-    for (int i = 0; i < MAX_CARD_NUM; i++) {
-        if (strcmp(cardData[i].aName, cardNum) == 0 && cardData[i].nDel != 1) {
-            printf("--------查询的卡信息如下-------\n");
-            // 增加宽度，考虑中文字符占用两个宽度的情况
-            printf("卡号\t\t状态\t余额\t\t累计消费\t使用次数\t上次使用时间\n");
-            
-            // 直接使用制表符对齐，并确保每个字段有足够的空间
-            printf("%-10s\t%d\t%.2f\t\t%.2f\t\t%d\t\t%s", 
-                  cardData[i].aName, 
-                  cardData[i].nStatus, 
-                  cardData[i].fBalance, 
-                  cardData[i].fTotalUse, 
-                  cardData[i].nUseCount, 
-                  ctime(&cardData[i].tLast));
-            return 0;
-        }
+    // 使用正确的函数findCardByNumber而不是findCardInList
+    CardNode* cardNode = findCardByNumber(cardList, cardNum);
+    if (cardNode != NULL && cardNode->data.nDel != 1) {
+        printf("--------查询的卡信息如下-------\n");
+        // 直接调用我们实现的打印卡信息函数
+        printCardInfo(cardNode);
+        return 0;
+    } else {
+        printf("未找到该卡号！\n");
+        return -1;
     }
-    printf("未找到该卡号！\n");
-    return -1;
 }
+
