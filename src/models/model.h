@@ -7,11 +7,11 @@ typedef struct CardData {
     int nStatus;        // 卡状态，0表示未上机，1表示正在上机，2表示注销，3表示失效
     time_t tStart;       // 开卡时间
     time_t tEnd;         // 截止时间
-    double fTotalUse;   // 累计金额
+    double fTotalUse;   // 累计消费金额
     time_t tLast;     // 上次使用时间
     int nUseCount;      // 上机次数
     double fBalance;     // 余额
-    int nDel;       // 删除标志，0表示未删除，1表示已删除   
+    int nDel;       // 删除标志，0表示未创建，1表示已创建，2表示已注销，3表示已失效   
 
 } CardData;
 
