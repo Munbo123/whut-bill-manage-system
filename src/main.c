@@ -2,10 +2,15 @@
 #include <string.h>
 #include "models/model.h"
 #include "models/cardDataLinkList.h"
+#include "models/ChargeDataLinkList.h"
+
 
 // 移除原来的数组定义
 // 定义全局链表变量
 CardList* cardList = NULL;
+
+// 定义计费信息的链表变量
+ChargeList* chargeList = NULL;
 
 int printMenu();
 int addCard();
@@ -146,3 +151,39 @@ int queryCard() {
     }
 }
 
+int startUse() {
+    printf("----------上机-----------\n");
+    char cardNum[19];
+    char password[9];
+    printf("请输入上机的卡号：");
+    scanf("%s", cardNum);
+    printf("请输入密码：");
+    scanf("%s", password);
+
+    // 查找卡号
+    CardNode* cardNode = findCardByNumber(cardList, cardNum);
+    if (cardNode != NULL && cardNode->data.nDel != 1) {
+        // 验证密码
+        if (strcmp(cardNode->data.aPassword, password) != 0) {
+            printf("密码错误！\n");
+            return -1;
+        }
+        
+        // 检查卡状态
+        if (cardNode->data.nStatus == 0) { // 未上机
+            cardNode->data.nStatus = 1; // 设置为正在上机
+            cardNode->data.tLast = time(NULL); // 更新上次使用时间
+            printf("卡号 %s 上机成功！\n", cardNum);
+        } else {
+            printf("卡号 %s 已经在使用中！\n", cardNum);
+        }
+
+        // 输出上机信息
+        printf("--------上机信息如下-------\n");
+        printf("卡号\t密码\t状态\t余额\t累计消费\t上机次数\n");
+
+    } else {
+        printf("未找到该卡号！\n");
+        return -1;
+    }
+}
