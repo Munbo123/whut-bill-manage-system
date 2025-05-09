@@ -367,19 +367,25 @@ int saveChargeListToFile(ChargeList* list, const char* filename) {
         return -1;
     }
 
-    FILE* file = fopen(filename, "wb");
+    FILE* file = fopen(filename, "w"); // 改为文本模式写入
     if (file == NULL) {
         printf("无法打开文件 %s 进行写入！\n", filename);
         return -2;
     }
 
     // 写入链表大小
-    fwrite(&list->size, sizeof(int), 1, file);
+    fprintf(file, "%d\n", list->size);
 
     // 写入所有节点数据
     ChargeNode* current = list->head;
     while (current != NULL) {
-        fwrite(&current->data, sizeof(ChargeData), 1, file);
+        fprintf(file, "%s,%ld,%ld,%.2f,%d,%d\n",
+               current->data.aName,
+               current->data.tStart,
+               current->data.tEnd,
+               current->data.fAmount,
+               current->data.nStatus,
+               current->data.nDel);
         current = current->next;
     }
 
@@ -389,7 +395,7 @@ int saveChargeListToFile(ChargeList* list, const char* filename) {
 
 // 从文件加载链表
 ChargeList* loadChargeListFromFile(const char* filename) {
-    FILE* file = fopen(filename, "rb");
+    FILE* file = fopen(filename, "r"); // 改为文本模式读取
     if (file == NULL) {
         printf("无法打开文件 %s 进行读取！\n", filename);
         return NULL;
@@ -404,7 +410,7 @@ ChargeList* loadChargeListFromFile(const char* filename) {
 
     // 读取链表大小
     int size;
-    if (fread(&size, sizeof(int), 1, file) != 1) {
+    if (fscanf(file, "%d\n", &size) != 1) {
         printf("读取文件 %s 失败！\n", filename);
         free(list);
         fclose(file);
@@ -414,7 +420,13 @@ ChargeList* loadChargeListFromFile(const char* filename) {
     // 读取所有节点数据
     for (int i = 0; i < size; i++) {
         ChargeData charge;
-        if (fread(&charge, sizeof(ChargeData), 1, file) != 1) {
+        if (fscanf(file, "%[^,],%ld,%ld,%lf,%d,%d\n",
+                  charge.aName,
+                  &charge.tStart,
+                  &charge.tEnd,
+                  &charge.fAmount,
+                  &charge.nStatus,
+                  &charge.nDel) != 6) {
             printf("读取文件 %s 中的计费数据失败！\n", filename);
             freeChargeList(list);
             fclose(file);
